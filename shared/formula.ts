@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Requirements
 
 import { CellObject, CellType } from "./cell";
+import { SvgMarkup } from "./common";
 
 // Types
 
@@ -43,6 +44,7 @@ export interface FormulaObject {
 
 export interface FormulaRecognitionAlternative {
   formula: FormulaObject;
+  svg: SvgMarkup;
 }
 
 export interface FormulaRecognitionResults {

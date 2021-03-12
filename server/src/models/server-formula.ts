@@ -28,7 +28,7 @@ import { StrokeData } from "../shared/stylus";
 
 import { postLatexRequest as myScriptLatexRequest } from "../adapters/myscript";
 import { convertPlainTextFormulaToWolfram, convertTeXtoWolfram, convertWolframToPlainTextFormula, convertWolframToTeX } from "../adapters/wolframscript";
-import { convertTexToSvg as mathjaxConvertTextToSvg } from "../adapters/mathjax";
+import { convertTexToSvg, convertTexToSvg as mathjaxConvertTextToSvg } from "../adapters/mathjax";
 import { SvgMarkup } from "../shared/common";
 
 // Types
@@ -36,6 +36,7 @@ import { SvgMarkup } from "../shared/common";
 // Parallels shared/formula.ts/FormulaRecognitionAlternative
 interface ServerFormulaRecognitionAlternative {
   formula: ServerFormula;
+  svg: SvgMarkup;
 }
 
 // Parallels shared/formula.ts/FormulaRecognitionResults
@@ -74,7 +75,8 @@ export class ServerFormula {
   public static async recognizeStrokes(strokeData: StrokeData): Promise<ServerFormulaRecognitionResults> {
     const tex = await myScriptLatexRequest(strokeData);
     const formula = await this.createFromTeX(tex);
-    return { alternatives: [ { formula } ] };
+    const svg = convertTexToSvg(tex);
+    return { alternatives: [ { formula, svg } ] };
   }
 
   // Public Class Event Handlers

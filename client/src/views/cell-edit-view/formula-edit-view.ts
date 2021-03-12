@@ -34,6 +34,8 @@ import { FormulaCell } from "../../models/client-cell/formula-cell";
 import { NotebookEditView } from "../notebook-edit-view";
 
 import { CellEditView } from "./index";
+import { CELL_ICONS, HtmlElementSpecification, svgIconReferenceMarkup } from "../../dom";
+import { CellType } from "../../shared/cell";
 
 // Types
 
@@ -50,10 +52,37 @@ export class FormulaEditView extends CellEditView<FormulaCellObject> {
   public constructor(notebookEditView: NotebookEditView, cell: FormulaCell) {
     debug(`Creating instance: style ${cell.obj.id}`);
 
-    super(notebookEditView, cell, <CssClass>'formulaCell');
+    const rightMarginButton: HtmlElementSpecification<'button'> = {
+      tag: 'button',
+      attrs: { tabindex: -1 },
+      class: <CssClass>'iconButton',
+      html: svgIconReferenceMarkup(CELL_ICONS.get(CellType.Formula)!),
+      asyncButtonHandler: (e: MouseEvent)=>this.onRecognizeFormulaButtonClicked(e),
+    };
+    super(notebookEditView, cell, <CssClass>'formulaCell', rightMarginButton);
   }
 
   // Public Instance Methods
+
+  private async onRecognizeFormulaButtonClicked(event: MouseEvent): Promise<void> {
+    // LATER: Cancel if user leaves screen when recognition request outstanding
+    event.preventDefault(); // Don't take focus.
+    event.stopPropagation(); // Prevent our own 'onClicked' handler from being called.
+    debug(`onRecognizeFormulaButtonClicked`);
+    const response = await this.cell.recognizeFormulaRequest();
+    const alternatives = response.results.alternatives;
+
+    for (const alternative of alternatives) {
+      this.suggestionPanel.addRecognitionAlternative(alternative);
+    }
+    this.suggestionPanel.showIfHidden();
+
+    // // TODO: Display alternatives.
+    // // TODO: When alternative selected:
+    // assert(alternatives.length>0);
+    // const alternative = alternatives[0];
+    // await this.cell.typesetFormulaRequest(alternative);
+  }
 
   public onUpdate(update: NotebookUpdate, ownRequest: boolean): boolean {
     debug(`onUpdate C${this.id} ${notebookUpdateSynopsis(update)}`);

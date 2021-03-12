@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import * as debug1 from "debug";
 const debug = debug1('client:cell-edit-view');
 
-import { CellObject, CellId, CellType } from "../../shared/cell";
+import { CellObject, CellId } from "../../shared/cell";
 import {
   assert, Html, CssClass, CssLength, CssSize, LengthInPixels,
   ElementId, SvgMarkup, cssLengthInPixels
@@ -136,6 +136,7 @@ export abstract class CellEditView<O extends CellObject> extends HtmlElement<'di
     notebookEditView: NotebookEditView,
     cell: ClientCell<O>,
     cssClass: CssClass,
+    rightMarginButton?: HtmlElementOrSpecification,
   ) {
 
     const iconId = CELL_ICONS.get(cell.obj.type)!;
@@ -179,14 +180,8 @@ export abstract class CellEditView<O extends CellObject> extends HtmlElement<'di
       }
     ];
     // TODO: This should be provided by inherited formula-edit-view:
-    if (cell.type == CellType.Formula) {
-      rightMarginChildren.unshift({
-        tag: 'button',
-        attrs: { tabindex: -1 },
-        class: <CssClass>'iconButton',
-        html: svgIconReferenceMarkup(CELL_ICONS.get(CellType.Formula)!),
-        asyncButtonHandler: (e: MouseEvent)=>this.onRecognizeFormulaButtonClicked(e),
-      });
+    if (rightMarginButton) {
+      rightMarginChildren.unshift(rightMarginButton);
     }
     const $rightMargin = $new<'div'>({
       tag: 'div',
@@ -277,7 +272,7 @@ export abstract class CellEditView<O extends CellObject> extends HtmlElement<'di
   protected $content: HTMLDivElement;
   private $main: HTMLDivElement;
   private resizingInitialHeight?: LengthInPixels;
-  private suggestionPanel: SuggestionPanel;
+  protected suggestionPanel: SuggestionPanel;
   private notebookEditView: NotebookEditView;
   private strokePanel: StrokePanel;
 
@@ -351,22 +346,6 @@ export abstract class CellEditView<O extends CellObject> extends HtmlElement<'di
 
   private async onInsertCell(): Promise<void> {
     await this.notebookEditView.insertCell(this.id);
-  }
-
-  private async onRecognizeFormulaButtonClicked(event: MouseEvent): Promise<void> {
-    // TODO: Disable button, show operation-in-progress indicator.
-    // TODO: Cancel if user leaves screen when recognition request outstanding
-    event.preventDefault(); // Don't take focus.
-    event.stopPropagation(); // Prevent our own 'onClicked' handler from being called.
-    debug(`onRecognizeFormulaButtonClicked`);
-    const response = await this.cell.recognizeFormulaRequest();
-    const alternatives = response.results.alternatives;
-
-    // TODO: Display alternatives.
-    // TODO: When alternative selected:
-    assert(alternatives.length>0);
-    const alternative = alternatives[0];
-    await this.cell.typesetFormulaRequest(alternative);
   }
 
   private onResizerCancel(): void {

@@ -270,6 +270,15 @@ export function $newSvgFromMarkup<K extends keyof SVGElementTagNameMap>(markup: 
   return <SVGElementTagNameMap[K]>$elt;
 }
 
+export function $outerSvg<K extends keyof SVGElementTagNameMap>(markup: SvgMarkup): SVGElementTagNameMap[K] {
+  const $parent = document.createElement('div');
+  $parent.innerHTML = markup;
+  const $elt: SVGElement = <SVGElement>$parent.firstElementChild!;
+  assert($elt);
+  assert($elt instanceof SVGElement);
+  return <SVGElementTagNameMap[K]>$elt;
+}
+
 export function $svg<K extends keyof SVGElementTagNameMap>(root: Element|Document, selector: string): SVGElementTagNameMap[K] {
   const $elts = $allSvg<K>(root, selector);
   assert($elts.length == 1, `Expected one element for selector '${selector}', got ${$elts.length}.`);

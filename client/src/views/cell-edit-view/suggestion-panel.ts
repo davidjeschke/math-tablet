@@ -17,8 +17,10 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { $outerSvg } from "../../dom";
 import { HtmlElement } from "../../html-element";
 import { CssClass, Html } from "../../shared/common";
+import { FormulaRecognitionAlternative } from "../../shared/formula";
 
 // Requirements
 
@@ -61,6 +63,11 @@ export class SuggestionPanel extends HtmlElement<'div'> {
   // Public Instance Property Functions
 
   // Public Instance Methods
+
+  public addRecognitionAlternative(alternative: FormulaRecognitionAlternative): void {
+    const $svg = $outerSvg<'svg'>(alternative.svg);
+    this.$elt.append($svg);
+  }
 
   public /* override */ show(): void {
     // We override show in order to position ourselves immediately above our parent element.

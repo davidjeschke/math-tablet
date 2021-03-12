@@ -812,7 +812,7 @@ export class ServerNotebook {
     ServerFormula.recognizeStrokes(cell.obj.strokeData)
     .then(
       serverResults=>{
-        const results: FormulaRecognitionResults = { alternatives: serverResults.alternatives.map(a=>({ formula: a.formula.obj })) };
+        const results: FormulaRecognitionResults = { alternatives: serverResults.alternatives.map(a=>({ formula: a.formula.obj, svg: a.svg })) };
         const response: FormulaRecognized = {
           type: 'notebook',
           path: this.path,

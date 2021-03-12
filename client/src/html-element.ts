@@ -74,6 +74,10 @@ export class HtmlElement<K extends keyof HTMLElementTagNameMap> {
     this.$elt.style.display = '';
   }
 
+  public showIfHidden(): void {
+    if (this.isHidden) { this.show(); }
+  }
+
   public toggleVisibility(): void {
     if (this.isHidden) { this.show(); }
     else { this.hide(); }
