@@ -31,20 +31,23 @@ import {
 } from "../../shared/common";
 import { CellDeleted, NotebookUpdate } from "../../shared/server-responses";
 import { Stroke, StrokeId } from "../../shared/stylus";
+import { notebookUpdateSynopsis } from "../../shared/debug-synopsis";
 
 // import { DebugConsole } from "../../components/debug-console";
 import { HtmlElement } from "../../html-element";
 import {
   $new, $newSvg, CLOSE_X_ENTITY, CELL_ICONS, svgIconReferenceMarkup, HtmlElementOrSpecification,
 } from "../../dom";
+import { showError } from "../../error-handler";
 
 import { Tools } from "../../screens/notebook-edit-screen/tools";
-import { CallbackFunctions as ResizerCallbackFunctions, ResizerBar } from "../../components/resizer-bar";
 import { CellView, ClientCell } from "../../models/client-cell";
-import { showError } from "../../error-handler";
 import { StrokePanel, StrokePanelCallbacks, StylusMode } from "../../components/stroke-panel";
+
 import { NotebookEditView } from "../notebook-edit-view";
-import { notebookUpdateSynopsis } from "../../shared/debug-synopsis";
+
+import { CallbackFunctions as ResizerCallbackFunctions, ResizerBar } from "./resizer-bar";
+import { SuggestionPanel } from "./suggestion-panel";
 
 // Types
 
@@ -164,6 +167,12 @@ export abstract class CellEditView<O extends CellObject> extends HtmlElement<'di
       {
         tag: 'button',
         attrs: { tabindex: -1 },
+        class: <CssClass>'iconButton',
+        html: svgIconReferenceMarkup('iconMonstrInfo6'),
+        syncButtonHandler: (e: MouseEvent)=>this.onSuggestionsButtonClicked(e),
+      }, {
+        tag: 'button',
+        attrs: { tabindex: -1 },
         classes:[ <CssClass>'deleteButton', <CssClass>'entityButton' ],
         html: CLOSE_X_ENTITY,
         asyncButtonHandler: e=>this.onDeleteButtonClicked(e),
@@ -221,6 +230,8 @@ export abstract class CellEditView<O extends CellObject> extends HtmlElement<'di
     };
     const resizerBar = new ResizerBar(resizerCallbackFunctions);
 
+    const suggestionPanel = new SuggestionPanel();
+
     super({
       tag: 'div',
       attrs: { tabindex: 0 },
@@ -229,6 +240,7 @@ export abstract class CellEditView<O extends CellObject> extends HtmlElement<'di
       children:[
         $main,
         resizerBar.$elt,
+        suggestionPanel.$elt,
       ],
       asyncListeners: {
         drop: e=>this.onDrop(e),
@@ -242,6 +254,7 @@ export abstract class CellEditView<O extends CellObject> extends HtmlElement<'di
 
     this.$content = $content;
     this.$main = $main;
+    this.suggestionPanel = suggestionPanel;
     this.cell = cell;
     this.notebookEditView = notebookEditView;
 
@@ -264,6 +277,7 @@ export abstract class CellEditView<O extends CellObject> extends HtmlElement<'di
   protected $content: HTMLDivElement;
   private $main: HTMLDivElement;
   private resizingInitialHeight?: LengthInPixels;
+  private suggestionPanel: SuggestionPanel;
   private notebookEditView: NotebookEditView;
   private strokePanel: StrokePanel;
 
@@ -417,6 +431,9 @@ export abstract class CellEditView<O extends CellObject> extends HtmlElement<'di
     });
   }
 
+  private onSuggestionsButtonClicked(_event: MouseEvent): void {
+    this.suggestionPanel.toggleVisibility();
+  }
 }
 
 // Helper Functions

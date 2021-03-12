@@ -37,6 +37,8 @@ export interface NVPair { name: string; value: string }
 
 // Constants
 
+// REVIEW: Current verson of Wolfram Language will continue to change (currently 12.2.0)
+//         We are going to need a regex instead of a hardcoded version number.
 const WOLFRAM_LICENSE_EXPIRING_MSG = "\n\tWolfram Language 12.0.0 Engine license you are using is expiring.\n\tPlease contact Wolfram Research or an authorized\n\tWolfram product distributor to extend your license and\n\tobtain a new password.\n"
 const WOLFRAM_ENGINE_ACTIVATED_MSG = "Wolfram Engine activated. See https://www.wolfram.com/wolframscript/ for more information.\n";
 
@@ -152,7 +154,6 @@ export function constructSubstitution(expr: WolframExpression, usedVariables: NV
 
 
 function executeNow(command: WolframExpression, resolve: (data: WolframExpression)=>void, reject: (reason: any)=>void): void {
-  debug(`Executing: "${command}".`)
   let results = <WolframExpression>'';
   const stdoutListener = (data: Buffer)=>{
     let dataString: string = data.toString();
@@ -195,7 +196,7 @@ function executeNow(command: WolframExpression, resolve: (data: WolframExpressio
   }
 
   gChildProcess.stdout!.on('data', stdoutListener)
-  debug(`WolframScript: executing: ${command}`);
+  debug(`Executing Wolfram expression: ${command}`);
   gChildProcess.stdin!.write(command + '\n');
 }
 
@@ -238,7 +239,6 @@ async function startProcess(config?: WolframScriptConfig): Promise<void> {
       let dataString = data.toString();
       debug(`WolframScript initial data: ${showInvisible(dataString)}`);
       if (INPUT_PROMPT_RE.test(dataString)) {
-        debug("MATCHES. RESOLVING.")
         child.stdout.removeListener('data', stdoutListener);
         resolve();
       }

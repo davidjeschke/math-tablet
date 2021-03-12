@@ -569,10 +569,6 @@ export class ServerNotebook {
     const cell = this.getCell(request.cellId);
     const displayUpdate = cell.insertStroke(stroke);
 
-    console.log("STROKE INSERTED");
-    console.dir(cell.obj, { depth: null });
-    console.dir(this.obj, { depth: null });
-
     // Construct the response
     const update: StrokeInserted = {
       type: 'strokeInserted',

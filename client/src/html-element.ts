@@ -65,18 +65,19 @@ export class HtmlElement<K extends keyof HTMLElementTagNameMap> {
   }
 
   public show(): void {
-    // rather than style attribute display:none on the element itself.
     // Per MDN: "A style declaration is reset by setting it to null or an empty string, ....
     //           Internet Explorer requires setting it to an empty string,..."
     // https://developer.mozilla.org/en-US/docs/Web/API/ElementCSSInlineStyle/style
-    // Note that this will not work if the element is hidden by a declaration in a stylesheet,
+
+    // Note: that this will not work if the element is hidden by a declaration in a stylesheet,
+    //       rather than style attribute display:none on the element itself.
     this.$elt.style.display = '';
   }
 
-  // public toggleVisibility(): void {
-  //   if (this.isHidden) { this.show(); }
-  //   else { this.hide(); }
-  // }
+  public toggleVisibility(): void {
+    if (this.isHidden) { this.show(); }
+    else { this.hide(); }
+  }
 
   // -- PRIVATE --
 
