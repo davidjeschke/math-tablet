@@ -225,7 +225,7 @@ export abstract class CellEditView<O extends CellObject> extends HtmlElement<'di
     };
     const resizerBar = new ResizerBar(resizerCallbackFunctions);
 
-    const suggestionPanel = new SuggestionPanel();
+    const suggestionPanel = new SuggestionPanel<O>(cell);
 
     super({
       tag: 'div',
@@ -272,7 +272,7 @@ export abstract class CellEditView<O extends CellObject> extends HtmlElement<'di
   protected $content: HTMLDivElement;
   private $main: HTMLDivElement;
   private resizingInitialHeight?: LengthInPixels;
-  protected suggestionPanel: SuggestionPanel;
+  protected suggestionPanel: SuggestionPanel<O>;
   private notebookEditView: NotebookEditView;
   private strokePanel: StrokePanel;
 

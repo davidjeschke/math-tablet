@@ -66,22 +66,11 @@ export class FormulaEditView extends CellEditView<FormulaCellObject> {
 
   private async onRecognizeFormulaButtonClicked(event: MouseEvent): Promise<void> {
     // LATER: Cancel if user leaves screen when recognition request outstanding
-    event.preventDefault(); // Don't take focus.
     event.stopPropagation(); // Prevent our own 'onClicked' handler from being called.
     debug(`onRecognizeFormulaButtonClicked`);
     const response = await this.cell.recognizeFormulaRequest();
-    const alternatives = response.results.alternatives;
-
-    for (const alternative of alternatives) {
-      this.suggestionPanel.addRecognitionAlternative(alternative);
-    }
+    this.suggestionPanel.setRecognitionResults(response.results);
     this.suggestionPanel.showIfHidden();
-
-    // // TODO: Display alternatives.
-    // // TODO: When alternative selected:
-    // assert(alternatives.length>0);
-    // const alternative = alternatives[0];
-    // await this.cell.typesetFormulaRequest(alternative);
   }
 
   public onUpdate(update: NotebookUpdate, ownRequest: boolean): boolean {

@@ -17,10 +17,12 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { $outerSvg } from "../../dom";
+import { $new } from "../../dom";
 import { HtmlElement } from "../../html-element";
-import { CssClass, Html } from "../../shared/common";
-import { FormulaRecognitionAlternative } from "../../shared/formula";
+import { ClientCell } from "../../models/client-cell";
+import { CellObject } from "../../shared/cell";
+import { assert, CssClass, Html } from "../../shared/common";
+import { FormulaRecognitionAlternative, FormulaRecognitionResults } from "../../shared/formula";
 
 // Requirements
 
@@ -32,7 +34,7 @@ import { FormulaRecognitionAlternative } from "../../shared/formula";
 
 // Exported Class
 
-export class SuggestionPanel extends HtmlElement<'div'> {
+export class SuggestionPanel<O extends CellObject> extends HtmlElement<'div'> {
 
   // Public Class Properties
   // Public Class Property Functions
@@ -41,22 +43,27 @@ export class SuggestionPanel extends HtmlElement<'div'> {
 
   // Public Constructor
 
-  public constructor() {
+  public constructor(cell: ClientCell<O>) {
+
+    const $noSuggestionsMsg = $new<'div'>({
+      tag: 'div',
+      html: <Html>"<i>No suggestions.</i>",
+    });
+
+    const $recognitionResults = $new<'div'>({
+      tag: 'div',
+    });
 
     super({
       tag: 'div',
       class: <CssClass>'suggestionPanel',
-      // children: [{
-      //   tag: 'button',
-      //   attrs: { tabindex: -1 },
-      //   classes: [ <CssClass>'insertCellBelowButton', <CssClass>'iconButton' ],
-      //   html: RIGHT_TRIANGLE_ENTITY,
-      //   asyncButtonHandler: e=>this.onInsertButtonClicked(e),
-      // }],
-      html: <Html>"<i>No suggestions.</i>",
+      children: [ $noSuggestionsMsg, $recognitionResults ],
       hidden: true,
     });
 
+    this.$noSuggestionsMsg = $noSuggestionsMsg;
+    this.$recognitionResults = $recognitionResults;
+    this.cell = cell;
   }
 
   // Public Instance Properties
@@ -64,9 +71,21 @@ export class SuggestionPanel extends HtmlElement<'div'> {
 
   // Public Instance Methods
 
-  public addRecognitionAlternative(alternative: FormulaRecognitionAlternative): void {
-    const $svg = $outerSvg<'svg'>(alternative.svg);
-    this.$elt.append($svg);
+  public setRecognitionResults(results: FormulaRecognitionResults): void {
+    assert(results.alternatives.length>0);
+    this.emptyRecognitionResults();
+    for (const alternative of results.alternatives) {
+      const $alternative = $new<'div'>({
+        tag: 'div',
+        asyncListeners: {
+          click: e=>this.onRecognitionAlternativeClicked(e, alternative),
+        },
+        html: alternative.svg,
+      });
+      //const $svg = $outerSvg<'svg'>(alternative.svg);
+      this.$recognitionResults.append($alternative);
+    }
+    this.showOrHideNoSuggestionsMsg();
   }
 
   public /* override */ show(): void {
@@ -86,11 +105,43 @@ export class SuggestionPanel extends HtmlElement<'div'> {
   // Private Class Property Functions
   // Private Class Methods
   // Private Class Event Handlers
-  // Private Constructor
+
   // Private Instance Properties
+
+  private $noSuggestionsMsg: HTMLDivElement;
+  private $recognitionResults: HTMLDivElement;
+  private cell: ClientCell<O>;
+
   // Private Instance Property Functions
+
+  private noSuggestions(): boolean {
+    // Returns true iff there are no suggestions in the suggestions panel.
+    return this.$recognitionResults.childElementCount == 0;
+  }
+
   // Private Instance Methods
+
+  private emptyRecognitionResults(): void {
+    this.$recognitionResults.innerHTML = '';
+    this.showOrHideNoSuggestionsMsg();
+  }
+
+  private showOrHideNoSuggestionsMsg(): void {
+    // Shows the "No suggestions" message if there are no suggestions
+    // in the panel. Otherwise, hides it.
+    // Call this at every point where we add or remove suggestions
+    // to the panel.
+    const show = this.noSuggestions();
+    this.$noSuggestionsMsg.style.display = (show ? '' : 'none');
+  }
+
   // Private Instance Event Handlers
 
+  private async onRecognitionAlternativeClicked(_event: MouseEvent, alternative: FormulaRecognitionAlternative): Promise<void> {
+    // REVIEW: What do we do if error happens on the request?
+    await this.cell.typesetFormulaRequest(alternative);
+    this.emptyRecognitionResults();
+    if (this.noSuggestions()) { this.hide(); }
+  }
 }
 
